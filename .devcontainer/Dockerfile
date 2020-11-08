@@ -1,49 +1,24 @@
-FROM ubuntu:20.04
+# Update the VARIANT arg in docker-compose.yml to pick a Node version: 10, 12, 14
+ARG VARIANT=12
+FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:${VARIANT}
 
-ARG USERNAME=vscode
+# Update args in docker-compose.yaml to set the UID/GID of the "node" user.
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
+RUN if [ "$USER_GID" != "1000" ] || [ "$USER_UID" != "1000" ]; then \
+        groupmod --gid $USER_GID node \
+        && usermod --uid $USER_UID --gid $USER_GID node \
+        && chown -R $USER_UID:$USER_GID /home/node \
+        && chown -R $USER_UID:root /usr/local/share/nvm /usr/local/share/npm-global; \
+    fi
 
-# Ensure apt is in non-interactive to avoid prompts
-ENV DEBIAN_FRONTEND=noninteractive
+# [Optional] Uncomment this section to install additional OS packages.
+# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+#     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-# Install dependencies.
-RUN apt-get -y update --no-install-recommends \
-    && apt-get -y install --no-install-recommends \
-    build-essential \
-    curl \
-    ca-certificates \
-    apt-utils \
-    dialog \
-    git \
-    vim \
-    && apt-get autoremove -y \
-    && apt-get clean -y
+# [Optional] Uncomment if you want to install an additional version of node using nvm
+# ARG EXTRA_NODE_VERSION=10
+# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
-# Add Node.js repository.
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-
-# Install Node.js.
-RUN apt-get -y update --no-install-recommends \
-    && apt-get -y install --no-install-recommends nodejs \
-    && apt-get autoremove -y \
-    && apt-get clean -y
-    
-# Install Docker CE CLI
-RUN apt-get update \
-    && apt-get install -y apt-transport-https ca-certificates curl gnupg2 lsb-release \
-    && curl -fsSL https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/gpg | apt-key add - 2>/dev/null \
-    && echo "deb [arch=amd64] https://download.docker.com/linux/$(lsb_release -is | tr '[:upper:]' '[:lower:]') $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list \
-    && apt-get update \
-    && apt-get install -y docker-ce-cli
-
-# Install Docker Compose
-RUN LATEST_COMPOSE_VERSION=$(curl -sSL "https://api.github.com/repos/docker/compose/releases/latest" | grep -o -P '(?<="tag_name": ").+(?=")') \
-    && curl -sSL "https://github.com/docker/compose/releases/download/${LATEST_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && chmod +x /usr/local/bin/docker-compose
-
-# Create the user.
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
-
-USER $USERNAME
+# [Optional] Uncomment if you want to install more global node packages
+# RUN sudo -u node npm install -g <your-package-list-here>
