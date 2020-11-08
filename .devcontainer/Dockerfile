@@ -28,13 +28,7 @@ RUN apt-get -y update --no-install-recommends \
     && apt-get -y install --no-install-recommends nodejs \
     && apt-get autoremove -y \
     && apt-get clean -y
-
-# Create the user.
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
-
-USER $USERNAME
-
+    
 # Install Docker CE CLI
 RUN apt-get update \
     && apt-get install -y apt-transport-https ca-certificates curl gnupg2 lsb-release \
@@ -47,3 +41,9 @@ RUN apt-get update \
 RUN LATEST_COMPOSE_VERSION=$(curl -sSL "https://api.github.com/repos/docker/compose/releases/latest" | grep -o -P '(?<="tag_name": ").+(?=")') \
     && curl -sSL "https://github.com/docker/compose/releases/download/${LATEST_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
+
+# Create the user.
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+USER $USERNAME
