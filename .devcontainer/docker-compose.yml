@@ -6,6 +6,8 @@ x-environment:
     POSTGRES_USER: vscode
     POSTGRES_PASSWORD: notsecure
     POSTGRES_DB: product
+    LC_ALL: en_US.UTF-8
+    LANG: en_US.UTF-8
 services:
     app:
         build:
